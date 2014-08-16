@@ -204,26 +204,6 @@ Bootstrap.BsTooltipComponent = Bootstrap.BsPopoverComponent.extend(
 
 Ember.Handlebars.helper 'bs-tooltip', Bootstrap.BsTooltipComponent
 
-
-
-
-
-
-
-
-
-
-
-
-###
-The tooltipBox controller is used to render the popovers into the named outlet "bs-tooltip-box"
-with the template tooltip-box
-###
-Bootstrap.TooltipBoxController = Ember.Controller.extend(
-  popoversBinding: "Bootstrap.TooltipBoxManager.popovers"
-  tooltipsBinding: "Bootstrap.TooltipBoxManager.tooltips"
-)
-
 template = "" +
     "{{#each pop in popovers}}" +
     "   {{bs-popover" +
@@ -426,6 +406,39 @@ Bootstrap.TooltipBoxManager = Ember.Object.create(
         else
           object.set name, value
     object
+)
+
+Bootstrap.TooltipBoxController = Ember.Controller.create(
+  popoversBinding: "Bootstrap.TooltipBoxManager.popovers"
+  tooltipsBinding: "Bootstrap.TooltipBoxManager.tooltips"
+)
+
+#provide mixins that can be used in the application
+
+Bootstrap.BsTooltipRouteMixin = Ember.Mixin.create(
+  bsTooltipRenderInto: "application" # important when using at root level
+  renderTemplate: ->
+    
+    # Render default outlet
+    @_super()
+    
+    # render extra outlets
+    controller = Bootstrap.TooltipBoxController
+    @render "bs-tooltip-box",
+      outlet: "bs-tooltip-box"
+      controller: controller
+      into: @get("bsTooltipRenderInto") 
+
+    return
+)
+
+Bootstrap.BsTooltipViewMixin = Ember.Mixin.create(
+  attributeBindings: [Bootstrap.TooltipBoxManager.attribute]
+  didInsertElement: ->
+    data = @get("bsTooltipData")
+    type = @get("bsTooltipType")
+    Bootstrap.TooltipBoxManager.addFromView this, type, data
+    return
 )
 
 Ember.Handlebars.registerHelper "bs-bind-popover", (path) ->
